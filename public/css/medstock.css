@@ -1,0 +1,87 @@
+/* MedStock - tema antarmuka. Mengubah variabel Bootstrap, tanpa mengganti markup. */
+:root {
+  --ms-ink: #12302f;
+  --ms-primary: #0f7a6d;
+  --ms-primary-soft: #e0f2ef;
+  --ms-bg: #f2f6f5;
+  --ms-surface: #ffffff;
+  --ms-line: #dfe8e6;
+  --ms-muted: #5f7573;
+  --ms-danger-soft: #fde8e6;
+  --ms-radius: 14px;
+
+  --bs-body-font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  --bs-body-color: var(--ms-ink);
+  --bs-primary: var(--ms-primary);
+  --bs-primary-rgb: 15, 122, 109;
+  --bs-link-color: var(--ms-primary);
+}
+
+body { background: var(--ms-bg); }
+
+/* Header */
+.ms-brand { display: flex; align-items: center; gap: .6rem; font-weight: 800; letter-spacing: -.02em; }
+.ms-brand-mark {
+  width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center;
+  background: var(--ms-ink); color: #fff; font-size: 1.1rem;
+}
+.ms-user { display: flex; align-items: center; gap: .6rem; font-size: .85rem; color: var(--ms-muted); }
+
+/* Surface */
+.ms-card { background: var(--ms-surface); border: 1px solid var(--ms-line); border-radius: var(--ms-radius); }
+.ms-card-body { padding: 1.5rem; }
+
+/* Tab */
+.ms-tabs { display: inline-flex; gap: .25rem; padding: .25rem; margin-bottom: 1.25rem;
+  background: #e4ece9; border-radius: 12px; }
+.ms-tab { border: 0; background: transparent; padding: .5rem 1.1rem; border-radius: 9px;
+  font-weight: 600; font-size: .9rem; color: var(--ms-muted); }
+.ms-tab.active { background: var(--ms-surface); color: var(--ms-ink); box-shadow: 0 1px 3px rgba(18, 48, 47, .12); }
+.ms-tab:focus-visible, .btn:focus-visible { outline: 2px solid var(--ms-primary); outline-offset: 2px; }
+
+/* Tombol */
+.btn { font-weight: 600; border-radius: 10px; }
+.btn-primary { --bs-btn-bg: var(--ms-primary); --bs-btn-border-color: var(--ms-primary);
+  --bs-btn-hover-bg: #0b645a; --bs-btn-hover-border-color: #0b645a;
+  --bs-btn-active-bg: #0b645a; --bs-btn-active-border-color: #0b645a; }
+
+/* Form */
+.form-label { font-size: .8rem; font-weight: 600; color: var(--ms-muted); margin-bottom: .3rem; }
+.form-control, .form-select { border-radius: 10px; border-color: var(--ms-line); padding: .55rem .8rem; }
+.form-control:focus, .form-select:focus { border-color: var(--ms-primary); box-shadow: 0 0 0 .2rem rgba(15, 122, 109, .15); }
+.ms-item-row { padding: .75rem; margin-bottom: .6rem; background: var(--ms-bg); border-radius: 12px; }
+
+/* Tabel */
+.ms-table { --bs-table-bg: transparent; margin: 0; }
+.ms-table th { font-size: .78rem; font-weight: 600; color: var(--ms-muted); background: #f8fbfa;
+  border-bottom: 1px solid var(--ms-line); padding: .8rem 1rem; white-space: nowrap; }
+.ms-table td { padding: .85rem 1rem; border-color: var(--ms-line); }
+.ms-table tbody tr:hover > * { background: #f8fbfa; }
+.ms-ref { font-weight: 700; }
+.ms-empty { text-align: center; color: var(--ms-muted); padding: 2.5rem 1rem !important; }
+.ms-empty i { display: block; font-size: 1.8rem; margin-bottom: .4rem; opacity: .6; }
+
+/* Badge status */
+.ms-pill { display: inline-flex; align-items: center; gap: .3rem; padding: .2rem .6rem;
+  border-radius: 999px; font-size: .75rem; font-weight: 700; }
+.ms-pill-ok { background: var(--ms-primary-soft); color: #0b645a; }
+.ms-pill-bad { background: var(--ms-danger-soft); color: #b3261e; }
+.ms-pill-role { background: #e4ece9; color: var(--ms-ink); }
+.ms-qty-bad { color: #b3261e; font-weight: 600; }
+
+/* Detail */
+.ms-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.ms-meta dt { font-size: .75rem; font-weight: 600; color: var(--ms-muted); }
+.ms-meta dd { margin: 0; font-weight: 600; }
+.ms-timeline { list-style: none; padding: 0 0 0 1rem; margin: 0; border-left: 2px solid var(--ms-line); font-size: .88rem; }
+.ms-timeline li { padding: .3rem 0 .3rem .6rem; }
+
+/* Login */
+.ms-login { max-width: 400px; margin: 8vh auto 0; }
+
+/* Rincian batch pada stok */
+.ms-batch { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; padding: .35rem 0; font-size: .85rem; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn, .ms-tab { transition: background-color .15s, box-shadow .15s; }
+}
