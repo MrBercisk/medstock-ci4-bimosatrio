@@ -107,7 +107,32 @@
     },
     {
       "name": "Stocks",
-      "item": []
+      "item": [
+        {
+          "name": "Stock Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/stocks?on_date=2026-10-03",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "stocks"
+              ],
+              "query": [
+                {
+                  "key": "on_date",
+                  "value": "2026-10-03"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
