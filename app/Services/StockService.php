@@ -9,10 +9,10 @@ use DateTimeZone;
 class StockService
 {
     /**
-     * Stok fisik per batch = stok awal + penerimaan - pemakaian.
-     * Tiga sumber digabung dengan UNION ALL, lalu dijumlahkan per (medicine_id, batch_no).
-     * CAST ke SIGNED karena kolom quantity bertipe UNSIGNED (pemakaian harus negatif).
-     * LEFT JOIN supaya obat aktif tanpa batch tetap muncul.
+     * Menghitung stok per batch dari stok awal, penerimaan, dan pemakaian. 
+     * Pemakaian dihitung sebagai pengurangan, tanpa mengubah data stok di DB. 
+     * UNION ALL menggabungkan ketiga sumber stok, lalu dijumlahkan per batch. 
+     * LEFT JOIN agar obat aktif tanpa batch tetap ikut ditampilkan.
      */
     private const SQL = <<<'SQL'
         SELECT m.id AS medicine_id, m.code, m.name, m.unit,
@@ -28,6 +28,7 @@ class StockService
                   FROM receipt_items
                 UNION ALL
                 SELECT medicine_id, batch_no, NULL, -CAST(quantity AS SIGNED)
+                 -- Pemakaian tidak mengubah stok di DB, tetapi dihitung sebagai pengurangan stock.
                   FROM stock_usage
             ) t
             GROUP BY medicine_id, batch_no
