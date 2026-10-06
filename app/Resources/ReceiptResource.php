@@ -4,10 +4,11 @@ namespace App\Resources;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use App\Policies\ReceiptPolicy;
 
 class ReceiptResource
 {
-    public static function item(array $r): array
+    public static function item(array $r, ?array $viewer = null): array
     {
         $updated = $r['updated_by'] !== null;
 
@@ -18,9 +19,10 @@ class ReceiptResource
             'received_at'  => self::iso($r['received_at']),
             'created_by'   => ['id' => (int) $r['created_by'], 'name' => $r['created_by_name']],
             'created_at'   => self::iso($r['created_at']),
-            // Belum pernah diubah: pengubah terakhir dan waktunya kosong (null).
             'updated_by'   => $updated ? ['id' => (int) $r['updated_by'], 'name' => $r['updated_by_name']] : null,
             'updated_at'   => $updated ? self::iso($r['updated_at']) : null,
+            // Hak ubah untuk pengguna yang sedang login, dihitung server lewat Policy.
+            'can_update'   => $viewer !== null ? (new ReceiptPolicy())->canUpdate($viewer, $r) : false,
             'items'        => array_map(static fn (array $i) => [
                 'medicine_id' => (int) $i['medicine_id'],
                 'code'        => $i['code'],
@@ -43,9 +45,9 @@ class ReceiptResource
         return $out;
     }
 
-    public static function collection(array $rows): array
+    public static function collection(array $rows, ?array $viewer = null): array
     {
-        return array_map([self::class, 'item'], $rows);
+        return array_map(static fn (array $r) => self::item($r, $viewer), $rows);
     }
 
     private static function iso(string $value): string

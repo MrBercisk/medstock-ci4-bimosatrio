@@ -129,7 +129,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"reference_no\": \"PB-001\",\r\n  \"supplier_id\": 1,\r\n  \"received_at\": \"2026-10-03T10:00:00+07:00\",\r\n  \"items\": [\r\n    {\"medicine_id\": 101, \"batch_no\": \"PCT-2601\", \"expires_on\": \"2027-12-31\", \"quantity\": 10},\r\n    {\"medicine_id\": 104, \"batch_no\": \"IBU-2602\", \"expires_on\": \"2028-06-30\", \"quantity\": 5}\r\n  ]\r\n}",
+              "raw": "{\r\n  \"reference_no\": \"PB-003\",\r\n  \"supplier_id\": 1,\r\n  \"received_at\": \"2026-10-03T11:00:00+07:00\",\r\n  \"items\": [\r\n    {\r\n      \"medicine_id\": 101,\r\n      \"batch_no\": \"TEST-PB003\",\r\n      \"expires_on\": \"2027-12-31\",\r\n      \"quantity\": 2\r\n    }\r\n  ]\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -155,7 +155,43 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": ""
+              "raw": "{{base_url}}/api/receipts/5",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "receipts",
+                "5"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Receipt",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"reference_no\": \"PB-002\",\r\n  \"supplier_id\": 1,\r\n  \"received_at\": \"2026-10-03T10:00:00+07:00\",\r\n  \"items\": [\r\n    {\r\n      \"medicine_id\": 104,\r\n      \"batch_no\": \"TEST-PB002\",\r\n      \"expires_on\": \"2027-12-31\",\r\n      \"quantity\": 3\r\n    }\r\n  ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/receipts/5",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "receipts",
+                "5"
+              ]
             }
           },
           "response": []
