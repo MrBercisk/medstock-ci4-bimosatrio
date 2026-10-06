@@ -20,4 +20,9 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function ($
     $routes->get('receipts/(:num)', 'ReceiptController::show/$1', ['filter' => 'auth']);
     $routes->post('receipts', 'ReceiptController::store', ['filter' => 'auth']);
     $routes->put('receipts/(:num)', 'ReceiptController::update/$1', ['filter' => 'auth']);
+
+     // lookup (pendukung dropdown di UI)
+    $routes->get('suppliers', 'LookupController::suppliers', ['filter' => 'auth']);
+    $routes->get('medicines', 'LookupController::medicines', ['filter' => 'auth']);
+    $routes->get('batches', 'LookupController::batches', ['filter' => 'auth']);
 });
