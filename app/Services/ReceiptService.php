@@ -16,6 +16,9 @@ use Exception;
 use RuntimeException;
 use Throwable;
 
+use App\Exceptions\ForbiddenException;
+use App\Policies\ReceiptPolicy;
+
 /**
  * Mengelola penerimaan obat (receipts) beserta item dan log aksinya.
  *
@@ -27,11 +30,13 @@ class ReceiptService
     private const TIMEZONE = 'Asia/Jakarta';
 
     private const LOG_CREATE = 'create';
+    private const LOG_UPDATE = 'update';
 
     private BaseConnection $db;
     private ReceiptModel $receipts;
     private ReceiptItemModel $items;
     private ReceiptLogModel $logs;
+    private ReceiptPolicy $policy;
 
     public function __construct()
     {
@@ -41,6 +46,7 @@ class ReceiptService
         $this->receipts = new ReceiptModel();
         $this->items    = new ReceiptItemModel();
         $this->logs     = new ReceiptLogModel();
+        $this->policy   = new ReceiptPolicy();
     }
 
     // Create
@@ -74,9 +80,55 @@ class ReceiptService
         return $receiptId;
     }
 
+    // Update
+    /** Pemeriksaan awal (404 lalu 403), dipanggil controller sebelum validasi input. */
+    public function ensureCanUpdate(int $id, array $user): void
+    {
+        $receipt = $this->db->table('receipts')->where('id', $id)->get()->getRowArray();
+
+        if ($receipt === null) {
+            throw new NotFoundException('Penerimaan tidak ditemukan.');
+        }
+
+        $this->authorize($user, $receipt);
+    }
+
+    /**
+     * Memperbarui penerimaan: header diubah, item diganti seluruhnya dengan keadaan akhir
+     * dari payload, dan aksi dicatat di log. Semuanya dalam satu transaksi.
+     */
+    public function update(int $id, array $data, array $user): void
+    {
+        $this->db->transBegin();
+
+        try {
+            $receipt = $this->lockReceipt($id);   // 404 jika tidak ada; baris dikunci sampai commit
+            $this->authorize($user, $receipt);    // 403 sebelum ada yang berubah
+
+            $payload = $this->prepare($data, $id); // nomor milik sendiri tidak dianggap duplikat
+
+            $this->updateReceipt($id, $payload, (int) $user['id']);
+
+            $this->db->table('receipt_items')->where('receipt_id', $id)->delete(); // keadaan akhir lengkap
+            $this->insertItems($id, $payload['items']);
+
+            $this->writeLog($id, (int) $user['id'], self::LOG_UPDATE);
+
+            $this->db->transCommit();
+        } catch (Throwable $e) {
+            $this->db->transRollback(); // header, item, dan log kembali seperti semula
+
+            if ($this->isDuplicateEntry($e)) {
+                throw new BusinessRuleException(
+                    'Data duplikat: reference_no atau kombinasi obat dan batch sudah ada.'
+                );
+            }
+
+            throw $e;
+        }
+    }
+
     // Read
-
-
     /** Daftar semua penerimaan (terbaru dulu), masing-masing dengan item-nya. */
     public function all(): array
     {
@@ -426,5 +478,42 @@ class ReceiptService
             ->where('logs.receipt_id', $receiptId)
             ->orderBy('logs.id')
             ->get()->getResultArray();
+    }
+
+    // update
+    /** Membaca penerimaan dengan SELECT ... FOR UPDATE agar tidak diubah dua request sekaligus. */
+    private function lockReceipt(int $id): array
+    {
+        $receipt = $this->db
+            ->query('SELECT * FROM receipts WHERE id = ? FOR UPDATE', [$id])
+            ->getRowArray();
+
+        if ($receipt === null) {
+            throw new NotFoundException('Penerimaan tidak ditemukan.');
+        }
+
+        return $receipt;
+    }
+
+    /** Mengubah header. created_by sengaja tidak disentuh; updated_by dari sesi. */
+    private function updateReceipt(int $id, array $payload, int $userId): void
+    {
+        $ok = $this->receipts->update($id, [
+            'reference_no' => $payload['reference_no'],
+            'supplier_id'  => $payload['supplier_id'],
+            'received_at'  => $payload['received_at'],
+            'updated_by'   => $userId,
+        ]);
+
+        if ($ok === false) {
+            throw new RuntimeException('Gagal memperbarui penerimaan.');
+        }
+    }
+
+    private function authorize(array $user, array $receipt): void
+    {
+        if (! $this->policy->canUpdate($user, $receipt)) {
+            throw new ForbiddenException('Anda tidak berhak mengubah penerimaan ini.');
+        }
     }
 }
