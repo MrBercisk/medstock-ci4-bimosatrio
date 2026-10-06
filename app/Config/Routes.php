@@ -6,7 +6,11 @@ use CodeIgniter\Router\RouteCollection;
 $routes->get('/', 'Home::index');
 
 $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function ($routes) {
+    // auth
     $routes->post('login', 'AuthController::login');
     $routes->post('logout', 'AuthController::logout');
     $routes->get('me', 'AuthController::me', ['filter' => 'auth']);
+
+    // stock
+    $routes->get('stocks', 'StockController::index', ['filter' => 'auth']);
 });
