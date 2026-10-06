@@ -103,7 +103,64 @@
     },
     {
       "name": "Receipts",
-      "item": []
+      "item": [
+        {
+          "name": "List Receipts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/receipts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "receipts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Receipt",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"reference_no\": \"PB-001\",\r\n  \"supplier_id\": 1,\r\n  \"received_at\": \"2026-10-03T10:00:00+07:00\",\r\n  \"items\": [\r\n    {\"medicine_id\": 101, \"batch_no\": \"PCT-2601\", \"expires_on\": \"2027-12-31\", \"quantity\": 10},\r\n    {\"medicine_id\": 104, \"batch_no\": \"IBU-2602\", \"expires_on\": \"2028-06-30\", \"quantity\": 5}\r\n  ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/receipts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "receipts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Receipt Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        }
+      ]
     },
     {
       "name": "Stocks",
