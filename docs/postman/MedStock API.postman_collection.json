@@ -226,6 +226,65 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Lookup",
+      "item": [
+        {
+          "name": "Suppliers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/suppliers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "suppliers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Medicines",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/medicines",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "medicines"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Batches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/batches",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "batches"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
