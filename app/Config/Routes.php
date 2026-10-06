@@ -13,4 +13,10 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function ($
 
     // stock
     $routes->get('stocks', 'StockController::index', ['filter' => 'auth']);
+
+
+    // receipt
+    $routes->get('receipts', 'ReceiptController::index', ['filter' => 'auth']);
+    $routes->get('receipts/(:num)', 'ReceiptController::show/$1', ['filter' => 'auth']);
+    $routes->post('receipts', 'ReceiptController::store', ['filter' => 'auth']);
 });
