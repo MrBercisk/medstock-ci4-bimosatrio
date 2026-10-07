@@ -1,18 +1,25 @@
 const { createApp, ref, reactive, onMounted } = Vue;
 const NEW_BATCH = '__new__';
+const LOGIN_URL = '/login';
+
+// Label peran untuk ditampilkan di header
+const ROLE_LABELS = {
+  receiving_officer: 'Petugas Penerimaan',
+  pharmacy_supervisor: 'Supervisor Farmasi',
+};
+
+function formatRole(role) {
+  return ROLE_LABELS[role] || role;   // peran tak dikenal tampil apa adanya
+}
+
 createApp({
   setup() {
     // State
     const isCheckingSession = ref(true);   // true saat halaman pertama dimuat
-    const currentUser = ref(null);         // null = belum login
-
-    const loginForm = reactive({ email: '', password: '' });
-    const isLoggingIn = ref(false);
-    const loginError = ref('');
-    const loginFieldErrors = ref({});
+    const currentUser = ref(null);
 
     // State: tampilan
-    const currentView = ref('list');       // 'list' | 'detail' | 'form'
+    const currentView = ref('list');       // 'list' | 'detail' | 'form' | 'stock'
     const receipts = ref([]);
     const selectedReceipt = ref(null);
     const errorMessage = ref('');
@@ -32,13 +39,18 @@ createApp({
     const isSaving = ref(false);
     const formError = ref('');
     const formErrorList = ref([]);
-    let nextRowKey = 1;    
+    let nextRowKey = 1;
+
+    // Pindah ke halaman login (replace: tombol Back tidak kembali ke halaman ini)
+    function goToLogin() {
+      window.location.replace(LOGIN_URL);
+    }
 
     // Penanganan error
     // 401 berarti sesi habis, kembali ke halaman login.
     function handleApiError(result, fallbackMessage) {
       if (result.status === 401) {
-        currentUser.value = null;
+        goToLogin();
         return;
       }
       errorMessage.value = result.body.message || fallbackMessage;
@@ -50,38 +62,9 @@ createApp({
       currentUser.value = result.ok ? result.body.data : null;
     }
 
-     async function login() {
-      isLoggingIn.value = true;
-      loginError.value = '';
-      loginFieldErrors.value = {};
-
-      const result = await apiRequest('/login', { method: 'POST', body: loginForm });
-
-      if (result.ok) {
-        loginForm.password = '';
-        await loadCurrentUser();   // identitas diambil dari server, bukan dari form
-        if (currentUser.value) await showReceiptList();
-      } else {
-        loginError.value = result.body.message || 'Login gagal.';
-        loginFieldErrors.value = result.body.errors || {};
-      }
-
-      isLoggingIn.value = false;
-    }
-
     async function logout() {
       await apiRequest('/logout', { method: 'POST' });
-      currentUser.value = null;
-      resetScreen();
-    }
-
-     function resetScreen() {
-      receipts.value = [];
-      stocks.value = [];
-      selectedReceipt.value = null;
-      currentView.value = 'list';
-      errorMessage.value = '';
-      successMessage.value = '';
+      goToLogin();
     }
 
     // Daftar dan detail penerimaan
@@ -112,6 +95,7 @@ createApp({
         handleApiError(result, 'Gagal memuat detail penerimaan.');
       }
     }
+
     // Laporan stok (tanpa on_date: server memakai hari ini di Jakarta)
     async function loadStocks() {
       const result = await apiRequest('/stocks');
@@ -121,50 +105,51 @@ createApp({
     }
 
     async function showStockList() {
-       errorMessage.value = '';
-       successMessage.value = '';
-       expandedMedicineIds.value = [];
-       currentView.value = 'stock';
-       await loadStocks();
+      errorMessage.value = '';
+      successMessage.value = '';
+      expandedMedicineIds.value = [];
+      currentView.value = 'stock';
+      await loadStocks();
     }
 
     function toggleStockDetail(medicineId) {
       const opened = expandedMedicineIds.value;
       expandedMedicineIds.value = opened.includes(medicineId)
-          ? opened.filter((id) => id !== medicineId)
-          : [...opened, medicineId];
+        ? opened.filter((id) => id !== medicineId)
+        : [...opened, medicineId];
     }
 
     function isStockExpanded(medicineId) {
-       return expandedMedicineIds.value.includes(medicineId);
+      return expandedMedicineIds.value.includes(medicineId);
     }
 
     // Form Penerimaan
     // Pemasok dan obat aktif dimuat sekali, lalu dipakai ulang.
     async function loadLookups() {
-        const [supplierResult, medicineResult, batchResult] = await Promise.all([
-            apiRequest('/suppliers'),
-            apiRequest('/medicines'),
-            apiRequest('/batches'),
-        ]);
+      const [supplierResult, medicineResult, batchResult] = await Promise.all([
+        apiRequest('/suppliers'),
+        apiRequest('/medicines'),
+        apiRequest('/batches'),
+      ]);
 
-        const failed = [supplierResult, medicineResult, batchResult].find((r) => !r.ok);
-        if (failed) {
-            handleApiError(failed, 'Gagal memuat data pilihan form.');
-            return false;
-        }
+      const failed = [supplierResult, medicineResult, batchResult].find((r) => !r.ok);
+      if (failed) {
+        handleApiError(failed, 'Gagal memuat data pilihan form.');
+        return false;
+      }
 
-        suppliers.value = supplierResult.body.data;
-        medicines.value = medicineResult.body.data;
-        knownBatches.value = batchResult.body.data;
-        return true;
+      suppliers.value = supplierResult.body.data;
+      medicines.value = medicineResult.body.data;
+      knownBatches.value = batchResult.body.data;
+      return true;
     }
+
     function createEmptyItem() {
-        return {
-            rowKey: nextRowKey++,
-            medicine_id: '', batch_no: '', isNewBatch: false,
-            expires_on: '', quantity: '',
-        };
+      return {
+        rowKey: nextRowKey++,
+        medicine_id: '', batch_no: '', isNewBatch: false,
+        expires_on: '', quantity: '',
+      };
     }
 
     function addItemRow() {
@@ -182,31 +167,31 @@ createApp({
 
     // Batch yang sudah dikenal untuk satu obat (saran di kolom batch)
     function batchesOfMedicine(medicineId) {
-    return knownBatches.value.filter((batch) => batch.medicine_id === medicineId);
+      return knownBatches.value.filter((batch) => batch.medicine_id === medicineId);
     }
 
     // Ganti obat: batch dan kedaluwarsa dikosongkan karena daftar batch berbeda per obat
     function onMedicineChange(item) {
-    item.batch_no = '';
-    item.isNewBatch = false;
-    item.expires_on = '';
+      item.batch_no = '';
+      item.isNewBatch = false;
+      item.expires_on = '';
     }
 
     // Pilihan di dropdown batch: batch lama (kedaluwarsa terisi otomatis) atau "Batch baru..."
     function onBatchChoice(item, chosenValue) {
-    if (chosenValue === NEW_BATCH) {
+      if (chosenValue === NEW_BATCH) {
         item.isNewBatch = true;
         item.batch_no = '';
         item.expires_on = '';
         return;
-    }
+      }
 
-    item.isNewBatch = false;
-    item.batch_no = chosenValue;
+      item.isNewBatch = false;
+      item.batch_no = chosenValue;
 
-    const known = batchesOfMedicine(item.medicine_id)
+      const known = batchesOfMedicine(item.medicine_id)
         .find((batch) => batch.batch_no === chosenValue);
-    item.expires_on = known ? known.expires_on : '';
+      item.expires_on = known ? known.expires_on : '';
     }
 
     function clearFormErrors() {
@@ -280,7 +265,8 @@ createApp({
         successMessage.value = result.body.message;
         currentView.value = 'detail';
       } else if (result.status === 401) {
-        currentUser.value = null;
+        goToLogin();
+        return;
       } else {
         formError.value = result.body.message || 'Gagal menyimpan penerimaan.';
         formErrorList.value = Object.values(result.body.errors || {}).map(String);
@@ -289,41 +275,43 @@ createApp({
       isSaving.value = false;
     }
 
-    // ---------- Saat halaman dimuat ----------
+    // Saat halaman dimuat
     onMounted(async () => {
       await loadCurrentUser();
-      if (currentUser.value) await loadReceipts();
+      if (!currentUser.value) {
+        goToLogin();   // belum login: langsung ke halaman login
+        return;
+      }
+      await loadReceipts();
       isCheckingSession.value = false;
     });
 
-    // ---------- Yang dipakai template ----------
+    // Yang dipakai template
     return {
-        isCheckingSession, currentUser,
+      isCheckingSession, currentUser, logout, formatRole,
 
-        loginForm, isLoggingIn, loginError, loginFieldErrors, login, logout,
+      currentView, receipts, selectedReceipt, errorMessage, successMessage,
+      showReceiptList, showReceiptDetail,
 
-        currentView, receipts, selectedReceipt, errorMessage, successMessage,
-        showReceiptList, showReceiptDetail,
+      suppliers, medicines, editingReceiptId, receiptForm,
+      stocks, showStockList, toggleStockDetail, isStockExpanded,
+      isSaving, formError, formErrorList,
 
-        suppliers, medicines, editingReceiptId, receiptForm,
-        stocks, showStockList, toggleStockDetail, isStockExpanded,
-        isSaving, formError, formErrorList,
+      showNewReceiptForm,
+      showEditReceiptForm,
+      addItemRow,
+      removeItemRow,
+      unitOfMedicine,
+      batchesOfMedicine,
+      saveReceipt,
 
-        showNewReceiptForm,
-        showEditReceiptForm,
-        addItemRow,
-        removeItemRow,
-        unitOfMedicine,
-        batchesOfMedicine,
-        saveReceipt,
+      onMedicineChange,
+      onBatchChoice,
+      NEW_BATCH,
 
-        onMedicineChange,
-        onBatchChoice,
-        NEW_BATCH,
-
-        formatDateTime,
-        formatDate,
-        formatAction,
+      formatDateTime,
+      formatDate,
+      formatAction,
     };
   },
 }).mount('#app');

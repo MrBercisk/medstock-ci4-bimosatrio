@@ -4,6 +4,7 @@ use CodeIgniter\Router\RouteCollection;
 
 /** @var RouteCollection $routes */
 $routes->get('/', 'Home::index');
+$routes->get('login', 'Home::login');
 
 $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function ($routes) {
     // auth
