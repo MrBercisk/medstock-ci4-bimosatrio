@@ -10,9 +10,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="/css/medstock.css">
+  <style>[v-cloak] { display: none !important; }</style>
 </head>
 <body>
-  <div id="app" class="container py-4" style="max-width: 1000px">
+  <div id="app" v-cloak class="container py-4" style="max-width: 1000px">
 
     <!-- Header -->
     <header class="d-flex justify-content-between align-items-center mb-4">
@@ -22,7 +23,7 @@
       </div>
       <div v-if="currentUser" class="ms-user">
         <span class="d-none d-sm-inline">{{ currentUser.email }}</span>
-        <span class="ms-pill ms-pill-role">{{ currentUser.role }}</span>
+        <span class="ms-pill ms-pill-role">{{ formatRole(currentUser.role) }}</span>
         <button class="btn btn-sm btn-outline-secondary" @click="logout">
           <i class="bi bi-box-arrow-right"></i> Keluar
         </button>
@@ -31,32 +32,7 @@
 
     <p v-if="isCheckingSession" class="text-muted">Memuat...</p>
 
-    <!-- Login -->
-    <section v-else-if="!currentUser" class="ms-card ms-login">
-      <div class="ms-card-body">
-        <h1 class="h5 fw-bold mb-1">Masuk ke MedStock</h1>
-        <p class="small text-muted mb-4">Gunakan akun yang diberikan oleh admin.</p>
-        <div v-if="loginError" class="alert alert-danger py-2">{{ loginError }}</div>
-        <form @submit.prevent="login">
-          <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input type="email" class="form-control" v-model="loginForm.email" required>
-            <div v-if="loginFieldErrors.email" class="text-danger small mt-1">{{ loginFieldErrors.email }}</div>
-          </div>
-          <div class="mb-4">
-            <label class="form-label">Kata sandi</label>
-            <input type="password" class="form-control" v-model="loginForm.password" required>
-            <div v-if="loginFieldErrors.password" class="text-danger small mt-1">{{ loginFieldErrors.password }}</div>
-          </div>
-          <button class="btn btn-primary w-100" :disabled="isLoggingIn">
-            {{ isLoggingIn ? 'Memproses...' : 'Masuk' }}
-          </button>
-        </form>
-      </div>
-    </section>
-
-    <!-- Setelah login -->
-    <main v-else>
+    <main v-else-if="currentUser">
       <nav class="ms-tabs">
         <button class="ms-tab" :class="{ active: currentView !== 'stock' }" @click="showReceiptList">
           <i class="bi bi-box-seam me-1"></i> Penerimaan
@@ -287,7 +263,7 @@
                   <td class="text-end" :class="{ 'ms-qty-bad': medicine.expired_quantity > 0 }">{{ medicine.expired_quantity }}</td>
                   <td class="text-end">
                     <button class="btn btn-sm btn-outline-primary" @click="toggleStockDetail(medicine.medicine_id)">
-                      {{ isStockExpanded(medicine.medicine_id) ? 'Tutup' : 'Rincian' }}
+                      {{ isStockExpanded(medicine.medicine_id) ? 'Tutup' : 'Detail' }}
                     </button>
                   </td>
                 </tr>
